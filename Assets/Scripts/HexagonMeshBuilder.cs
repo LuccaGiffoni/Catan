@@ -5,30 +5,16 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public struct Face
-{
-    public List<Vector3> Vertices { get; private set; }
-    public List<int> Triangles { get; private set; }
-    public List<Vector2> UVs { get; private set; }
-
-    public Face(List<Vector3> vertices, List<int> triangles, List<Vector2> uvs)
-    {
-        Vertices = vertices;
-        Triangles = triangles;
-        UVs = uvs;
-    }
-}
-
 
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 //[RequireComponent(typeof(Rigidbody), typeof(MeshCollider))]
 public class HexagonMeshBuilder : MonoBehaviour
 {
     public Material HexagonMaterial { get; private set; }
-    public float InnerSize { get; private set; }
-     public float OuterSize { get; private set; }
-    public float Height { get; private set; }
-    public bool IsFlatTopped { get; private set; }
+    public float InnerSize { get; private set; } = 0.0f;
+    public float OuterSize { get; private set; } = 1.0f;
+    public float Height { get; private set; } = 0.2f;
+    public bool IsFlatTopped { get; private set; } = false;
 
     private List<Face> hexagonFaces;
 
@@ -79,6 +65,11 @@ public class HexagonMeshBuilder : MonoBehaviour
     public void SetMaterial(Material newMaterial)
     {
         hexagonRenderer.material = newMaterial;
+    }   
+    
+    public Material GetMaterial()
+    {
+        return hexagonRenderer.material;
     }
 
     private void FindMiddleVertex()

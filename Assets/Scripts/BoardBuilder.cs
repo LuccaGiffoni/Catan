@@ -1,17 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.TerrainTools;
 using UnityEngine;
 
 public class BoardBuilder : MonoBehaviour
 {
+    [Header("Lands Materials")]
+    [SerializeField] private Material sea;
+    [SerializeField] private Material desert;
+
+    [Header("Resources Materials")]
+    [SerializeField] private Material manna;
+    [SerializeField] private Material fish;
+    [SerializeField] private Material rock;
+    [SerializeField] private Material oak;
+    [SerializeField] private Material clay;
+
     [Header("Hexagon Settings")]
-    [SerializeField] private Material hexagonMaterial;
-    [SerializeField] private float innerSize = 0f;
-    [SerializeField] private float outerSize = 1f;
-    [SerializeField] private float height = 0.1f;
-    [SerializeField] private bool isFlatTopped = true;
-    [SerializeField] private float spacing;
+    [SerializeField] public Material hexagonMaterial;
+    [SerializeField] public float innerSize = 0f;
+    [SerializeField] public float outerSize = 1f;
+    [SerializeField] public float height = 0.1f;
+    [SerializeField] public bool isFlatTopped = true;
+    [SerializeField] public float spacing;
 
     [Header("Roads")]
     [SerializeField] private Transform roads;
@@ -22,12 +34,28 @@ public class BoardBuilder : MonoBehaviour
         LayoutGrid();
     }
 
-    private void OnValidate()
+    private Material[] CreateMaterialList()
     {
-        if (Application.isPlaying) LayoutGrid();
+        return new Material[]
+        {
+            oak, oak, oak, oak,
+            fish, fish, fish, fish,
+            manna, manna, manna, manna,
+            rock, rock, rock,
+            clay, clay, clay
+        };
     }
 
-    private void LayoutGrid()
+    private void ShuffleMaterials(Material[]  materials)
+    {
+        for (int i = materials.Length - 1; i > 0; i--)
+        {
+            int randomIndex = Random.Range(0, i + 1);
+            (materials[randomIndex], materials[i]) = (materials[i], materials[randomIndex]);
+        }
+    }
+
+    private void ClearGameObject()
     {
         for (int i = transform.childCount - 1; i >= 0; i--)
         {
@@ -38,11 +66,40 @@ public class BoardBuilder : MonoBehaviour
         {
             DestroyImmediate(roads.GetChild(i).gameObject);
         }
+    }
 
-        int[] ringCounts = { 1, 6, 12 };
+    private void LayoutGrid()
+    {
+        ClearGameObject();
+
+        Material[] materials = CreateMaterialList();
+        ShuffleMaterials(materials);
+
+        Dictionary<Material, int> materialLimits = new Dictionary<Material, int>();
+        foreach (Material material in materials)
+        {
+            if (!materialLimits.ContainsKey(material))
+            {
+                materialLimits[material] = 1;
+            }
+            else
+            {
+                materialLimits[material]++;
+            }
+        }
+
+        Dictionary<Material, int> materialCounts = new Dictionary<Material, int>(materialLimits.Keys.Count);
+        foreach (Material key in materialLimits.Keys)
+        {
+            materialCounts[key] = 0;
+        }
+
+        int[] ringCounts = { 1, 6, 12, 18 };
         int hexagonIndex = 0;
 
-        for (int ring = 0; ring < 3; ring++)
+        Material previousMaterial = null;
+
+        for (int ring = 0; ring < 4; ring++)
         {
             int count = ringCounts[ring];
 
@@ -54,7 +111,30 @@ public class BoardBuilder : MonoBehaviour
 
                 HexagonMeshBuilder builder = land.GetComponent<HexagonMeshBuilder>();
                 builder.ConfigureHexagon(innerSize, outerSize, height, isFlatTopped);
-                builder.SetMaterial(hexagonMaterial);
+
+                if (ring == 0)
+                {
+                    builder.SetMaterial(desert);
+                }
+                else if (ring == 1 || ring == 2)
+                {
+                    Material selectedMaterial;
+                    do
+                    {
+                        selectedMaterial = materials[Random.Range(0, materials.Length)];
+                    } while (!IsMaterialValidForCoordinate(selectedMaterial, GetHexagonCoordinate(ring, i)) || 
+                        materialCounts[selectedMaterial] >= materialLimits[selectedMaterial] || 
+                        selectedMaterial == previousMaterial);
+
+                    builder.SetMaterial(selectedMaterial);
+                    materialCounts[selectedMaterial]++;
+                    previousMaterial = selectedMaterial;
+                }
+                else if (ring == 3)
+                {
+                    builder.SetMaterial(sea);
+                }
+
                 builder.GenerateMesh();
 
                 if (ring > 0)
@@ -67,17 +147,17 @@ public class BoardBuilder : MonoBehaviour
                         if (ring == 2 && i == count - 1)
                         {
                             Vector2Int coordC = GetHexagonCoordinate(ring - 1, 0);
-                            CreateEmptyGameObjectBetweenHexagons(coordA, coordC);
+                            CreateRoadPointsBetweenVertices(coordA, coordC);
                         }
                         else
                         {
                             Vector2Int coordC = GetHexagonCoordinate(ring - 1, (i / ring) * (ring - 1) - 1);
-                            CreateEmptyGameObjectBetweenHexagons(coordA, coordC);
+                            CreateRoadPointsBetweenVertices(coordA, coordC);
                         }
                     }
                     else
                     {
-                        CreateEmptyGameObjectBetweenHexagons(coordA, coordB);
+                        CreateRoadPointsBetweenVertices(coordA, coordB);
                     }
                 }
 
@@ -87,7 +167,7 @@ public class BoardBuilder : MonoBehaviour
         }
     }
 
-    private void CreateEmptyGameObjectBetweenHexagons(Vector2Int coordA, Vector2Int coordB)
+    private void CreateRoadPointsBetweenVertices(Vector2Int coordA, Vector2Int coordB)
     {
         Vector3 positionA = GetPositionForHexagonFromCoordinate(coordA);
         Vector3 positionB = GetPositionForHexagonFromCoordinate(coordB);
@@ -145,5 +225,71 @@ public class BoardBuilder : MonoBehaviour
         float x = (coordinate.x + coordinate.y * 0.5f) * outerSize * Mathf.Sqrt(3f) * spacing;
         float z = coordinate.y * outerSize * 1.5f * spacing;
         return new Vector3(x, 0, -z);
+    }
+
+    private bool IsMaterialValidForCoordinate(Material material, Vector2Int coordinate)
+    {
+        Vector2Int[] neighbors = new Vector2Int[]
+        {
+        coordinate + new Vector2Int(1, 0),
+        coordinate + new Vector2Int(-1, 0),
+        coordinate + new Vector2Int(0, 1),
+        coordinate + new Vector2Int(0, -1),
+        coordinate + new Vector2Int(1, -1),
+        coordinate + new Vector2Int(-1, 1)
+        };
+
+        foreach (Vector2Int neighbor in neighbors)
+        {
+            GameObject neighborObject = FindHexagonByCoordinate(neighbor);
+            if (neighborObject != null)
+            {
+                HexagonMeshBuilder neighborBuilder = neighborObject.GetComponent<HexagonMeshBuilder>();
+                if (neighborBuilder.GetMaterial() == material)
+                {
+                    return false;
+                }
+
+                // Check if the neighbor's neighbors have the same material
+                Vector2Int[] neighborNeighbors = new Vector2Int[]
+                {
+                neighbor + new Vector2Int(1, 0),
+                neighbor + new Vector2Int(-1, 0),
+                neighbor + new Vector2Int(0, 1),
+                neighbor + new Vector2Int(0, -1),
+                neighbor + new Vector2Int(1, -1),
+                neighbor + new Vector2Int(-1, 1)
+                };
+
+                foreach (Vector2Int neighborNeighbor in neighborNeighbors)
+                {
+                    GameObject neighborNeighborObject = FindHexagonByCoordinate(neighborNeighbor);
+                    if (neighborNeighborObject != null)
+                    {
+                        HexagonMeshBuilder neighborNeighborBuilder = neighborNeighborObject.GetComponent<HexagonMeshBuilder>();
+                        if (neighborNeighborBuilder.GetMaterial() == material)
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+    private GameObject FindHexagonByCoordinate(Vector2Int coordinate)
+    {
+        foreach (Transform child in transform)
+        {
+            if (GetPositionForHexagonFromCoordinate(coordinate) == child.position)
+            {
+                return child.gameObject;
+            }
+        }
+
+        return null;
     }
 }

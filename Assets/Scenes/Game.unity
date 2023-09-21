@@ -217,6 +217,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d858755e68ae17c4694684fae12040ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  sea: {fileID: 2100000, guid: 91c59bed82977334bb331931b425d7ad, type: 2}
+  desert: {fileID: 2100000, guid: 19489d6a89e95474b9d7ab3d19c86439, type: 2}
+  manna: {fileID: 2100000, guid: 5c22f600b10fcdc4bb25c1ab57d74cad, type: 2}
+  fish: {fileID: 2100000, guid: fa328ea67a9198442981af7830152330, type: 2}
+  rock: {fileID: 2100000, guid: 8a17519f40bbd934f8a7e328baa8edf8, type: 2}
+  oak: {fileID: 2100000, guid: cb202302e82c26e4984bf300e26a7ae7, type: 2}
+  clay: {fileID: 2100000, guid: e7cf984e23e880b4b9c41ed88c8cd737, type: 2}
   hexagonMaterial: {fileID: 2100000, guid: 19489d6a89e95474b9d7ab3d19c86439, type: 2}
   innerSize: 0
   outerSize: 1
@@ -419,6 +426,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2122897117}
+  - component: {fileID: 2122897119}
+  - component: {fileID: 2122897118}
   m_Layer: 0
   m_Name: Roads
   m_TagString: Untagged
@@ -441,6 +450,58 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &2122897118
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2122897116}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &2122897119
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2122897116}
+  m_Mesh: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
